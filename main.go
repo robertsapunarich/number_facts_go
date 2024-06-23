@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 )
@@ -47,14 +48,25 @@ func getFactFromNumbersApi(number int) string {
 	defer resp.Body.Close()
 
 	body := resp.Body
-	fact := make([]byte, 100)
-	_, err = body.Read(fact)
+	fact, err := io.ReadAll(body)
+
+	if err != nil {
+		fmt.Println(err)
+		return "Error reading fact"
+	}
+
+	numberFact := NumberFactsResponse{}
+	err = json.Unmarshal(fact, &numberFact)
 
 	if err != nil {
 		return "Error reading fact"
 	}
 
-	return string(fact)
+	return numberFact.Text
+}
+
+type NumberFactsResponse struct {
+	Text string `json:"text"`
 }
 
 type CustomResponse struct {
